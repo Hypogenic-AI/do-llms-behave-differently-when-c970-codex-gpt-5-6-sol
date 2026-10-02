@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\caption{White-box representation and intervention summary. Bold marks the strongest held-out classifier; steering changes are relative to no steering.}
+\label{tab:whitebox}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Metric} & \textbf{Result} \\
+\midrule
+Held-out authorship AUROC & {\bf 0.907} \\
+Held-out balanced accuracy & 0.857 \\
+Surface-only held-out AUROC & 0.601 \\
+Selected layer (validation only) & 4 \\
+Authorship/evaluation cosine & 0.242 \\
+Expected probe-logit shift & $+17.08/-17.08$ \\
+Authorship behavior change & $+6.25/+6.25$ pp \\
+Random behavior-change range & $[0,+6.25]$ pp \\
+Authorship validity change & $0/0$ pp \\
+\bottomrule
+\end{tabular}
+\end{table}
+

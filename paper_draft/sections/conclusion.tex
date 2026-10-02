@@ -1,0 +1,7 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented a paired audit of whether requests that read human-written or LLM-written change harmful compliance, benign over-refusal, sycophancy, or answer accuracy. The style manipulation worked, and \qwen encoded it with 0.907 held-out AUROC. Yet no preregistered API contrast survived multiplicity correction, surface and label controls did not establish an effect, and bidirectional authorship steering moved behavior no more selectively than random directions. The key result is not that style is invisible; it is that recognition does not imply behavioral use.
+
+Future work should test 150--300 complete pairs per task and model, collect genuinely human rewrites from multiple annotators, vary LLM generators, and target safety items with 20--80\% baseline compliance. Sycophancy deserves priority because its point estimates were consistent but imprecise. White-box studies should span model families, layers, token positions, and magnitudes, while confirmatory transfer studies should replace null-hypothesis testing with a prespecified equivalence margin.
+

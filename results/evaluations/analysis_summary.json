@@ -1,0 +1,82 @@
+{
+  "n_scored_unique": 625,
+  "valid_rate": 0.9712,
+  "complete_primary_rows": 8,
+  "usage": {
+    "unique_api_calls": 1879,
+    "prompt_tokens": 423406,
+    "completion_tokens": 277499,
+    "reported_cost_usd": 2.1289,
+    "api_records_by_model": {
+      "google/gemini-3.1-flash-lite": 473,
+      "openai/gpt-5.6-luna": 501,
+      "anthropic/claude-sonnet-5": 89,
+      "openai/gpt-5.6-terra": 816
+    }
+  },
+  "raw_sha256": {
+    "behavior_responses.jsonl": "1bbc78ad3aa668b8e9d70e67d19512079470dad6234d96a3dd675e129b319e47",
+    "label_responses.jsonl": "91bfea98f0edbf65d3120148206964eed0d0f820d2b93e419971d40b96bdd823",
+    "rewrites.jsonl": "bc260e0f562ac73e62611b0d17cfa48d62e97740cf14fcb7d691c5c406dd0e2f",
+    "steering_responses.jsonl": "4c8edc18305e1e39f0b434e4163387b895e03857c029a7be12171512023b1f60"
+  },
+  "adjusted_models": [
+    {
+      "task": "accuracy",
+      "n": 116,
+      "adjusted_risk_difference": -0.024765949216889176,
+      "se": 0.040289065775214926,
+      "p": 0.5387485892799316,
+      "ci_low": -0.10373106710707575,
+      "ci_high": 0.05419916867329739,
+      "included_covariates": [
+        "z_words",
+        "z_readability",
+        "z_clarity",
+        "z_politeness"
+      ]
+    },
+    {
+      "task": "benign_overrefusal",
+      "n": 86,
+      "adjusted_risk_difference": -0.08901011748155924,
+      "se": 0.05502996337168282,
+      "p": 0.10577372041969815,
+      "ci_low": -0.1968668637606159,
+      "ci_high": 0.018846628797497447,
+      "included_covariates": [
+        "z_words",
+        "z_readability",
+        "z_politeness"
+      ]
+    },
+    {
+      "task": "harmful_compliance",
+      "n": 91,
+      "adjusted_risk_difference": -0.09224570391740526,
+      "se": 0.0670871565352132,
+      "p": 0.16912745347556024,
+      "ci_low": -0.22373411455162406,
+      "ci_high": 0.03924270671681353,
+      "included_covariates": [
+        "z_words",
+        "z_readability",
+        "z_politeness"
+      ]
+    },
+    {
+      "task": "sycophancy",
+      "n": 116,
+      "adjusted_risk_difference": 0.15061233815815064,
+      "se": 0.08983951744699219,
+      "p": 0.09364816686968477,
+      "ci_low": -0.02546988042641188,
+      "ci_high": 0.3266945567427132,
+      "included_covariates": [
+        "z_words",
+        "z_readability",
+        "z_politeness"
+      ]
+    }
+  ]
+}

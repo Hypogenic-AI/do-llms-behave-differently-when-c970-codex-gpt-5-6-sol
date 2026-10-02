@@ -1,0 +1,59 @@
+[
+  {
+    "task": "accuracy",
+    "n": 116,
+    "adjusted_risk_difference": -0.024765949216889176,
+    "se": 0.040289065775214926,
+    "p": 0.5387485892799316,
+    "ci_low": -0.10373106710707575,
+    "ci_high": 0.05419916867329739,
+    "included_covariates": [
+      "z_words",
+      "z_readability",
+      "z_clarity",
+      "z_politeness"
+    ]
+  },
+  {
+    "task": "benign_overrefusal",
+    "n": 86,
+    "adjusted_risk_difference": -0.08901011748155924,
+    "se": 0.05502996337168282,
+    "p": 0.10577372041969815,
+    "ci_low": -0.1968668637606159,
+    "ci_high": 0.018846628797497447,
+    "included_covariates": [
+      "z_words",
+      "z_readability",
+      "z_politeness"
+    ]
+  },
+  {
+    "task": "harmful_compliance",
+    "n": 91,
+    "adjusted_risk_difference": -0.09224570391740526,
+    "se": 0.0670871565352132,
+    "p": 0.16912745347556024,
+    "ci_low": -0.22373411455162406,
+    "ci_high": 0.03924270671681353,
+    "included_covariates": [
+      "z_words",
+      "z_readability",
+      "z_politeness"
+    ]
+  },
+  {
+    "task": "sycophancy",
+    "n": 116,
+    "adjusted_risk_difference": 0.15061233815815064,
+    "se": 0.08983951744699219,
+    "p": 0.09364816686968477,
+    "ci_low": -0.02546988042641188,
+    "ci_high": 0.3266945567427132,
+    "included_covariates": [
+      "z_words",
+      "z_readability",
+      "z_politeness"
+    ]
+  }
+]

@@ -4,13 +4,31 @@ version = "0.1.0"
 description = "Research workspace for experiments"
 requires-python = ">=3.10"
 dependencies = [
+    "accelerate>=1.15.0",
     "datasets",
     "huggingface-hub",
+    "matplotlib>=3.10.9",
+    "numpy>=2.2.6",
+    "openai>=3.23.0",
+    "pandas>=2.3.3",
     "pypdf",
     "pytz",
     "requests",
+    "safetensors>=0.8.0",
+    "scikit-learn>=1.7.2",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+    "sentencepiece>=0.2.2",
+    "statsmodels>=0.15.0",
+    "tenacity>=9.1.4",
+    "textstat>=0.7.13",
+    "transformers>=5.18.0",
+    "ziglang>=0.16.0",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+package = false

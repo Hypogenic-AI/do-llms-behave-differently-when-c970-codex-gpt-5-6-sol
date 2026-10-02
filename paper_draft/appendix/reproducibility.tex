@@ -1,0 +1,15 @@
+\section{Reproducibility Details}
+\label{sec:appendix}
+
+\subsection{Models and resources}
+
+The exact API roles are: \texttt{anthropic/claude-sonnet-5} as primary rewriter; \texttt{openai/gpt-5.6-luna} as fallback rewriter and responder; \texttt{google/gemini-3.1-flash-lite} as responder; and \texttt{openai/gpt-5.6-terra} as blinded validation and behavior judge. The API portion records 1,879 unique successful calls, 423,406 prompt tokens, 277,499 completion tokens, and an OpenRouter-reported cost of \$2.13. The local run uses one NVIDIA RTX A6000 with 49,140 MiB total memory.
+
+\subsection{Audit trail}
+
+Raw API and local responses are stored under \texttt{results/model\_outputs/}; tidy data and statistical tables under \texttt{results/evaluations/}; fixed items and audits under \texttt{results/data/}; and source code under \texttt{src/}. The exact environment is specified by \texttt{pyproject.toml} and \texttt{uv.lock}. The analysis summary records SHA-256 hashes for the four principal raw files: \texttt{behavior\_responses.jsonl} (\texttt{1bbc78ad...b319e47}), \texttt{label\_responses.jsonl} (\texttt{91bfea98...bdd823}), \texttt{rewrites.jsonl} (\texttt{bc260e0f...6dd0e2f}), and \texttt{steering\_responses.jsonl} (\texttt{4c8edc18...23b1f60}). The repository README gives the full rerun procedure.
+
+\subsection{Decision rules}
+
+The six-test Holm family excludes benign over-refusal, which was prespecified as secondary. Complete-pair analysis excludes an item whenever either focal variant lacks a valid score for that responder. The white-box gate requires held-out probe AUROC above 0.70 before steering. Causal success additionally requires behavior beyond all five equal-norm random directions and no greater than a 5-point increase in invalid or degraded output. The authorship intervention fails the behavioral-beyond-random condition.
+

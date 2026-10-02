@@ -1,0 +1,706 @@
+You are an academic paper writer. Generate a complete NEURIPS style paper
+based on the experiment results provided.
+
+════════════════════════════════════════════════════════════════════════════════
+                         IMPORTANT: BEFORE YOU START
+════════════════════════════════════════════════════════════════════════════════
+
+Before writing any content, you MUST complete these steps:
+
+1. READ THE SKILL: Review the paper-writer skill at .codex/skills/paper-writer/SKILL.md
+2. READ THE STYLE GUIDE: Study templates/paper_writing/lab_style_guide.md carefully
+3. REVIEW EXAMPLES: Browse paper_examples/ for formatting and language patterns:
+   - Look at sections/1.introduction.tex for language style
+   - Look at tables/*.tex for table formatting
+   - Look at commands/*.tex for macro usage
+4. VERIFY COMMAND TEMPLATES: Command templates (math.tex, general.tex, macros.tex) are pre-copied to paper_draft/commands/
+
+CRITICAL: Reference example papers for FORMATTING and LANGUAGE STYLE only.
+Do NOT copy content, phrasing, or narrative structure from the example papers.
+The examples are in a different research domain - focus only on presentation style.
+
+════════════════════════════════════════════════════════════════════════════════
+                            EXPERIMENT REPORT
+════════════════════════════════════════════════════════════════════════════════
+
+# Do LLMs Behave Differently When the Prompter Reads Human vs LLM-Written?
+
+## 1. Executive Summary
+
+This pilot tested whether semantically matched human-like and LLM-like versions of a user request change harmful compliance, benign over-refusal, sycophancy, or multiple-choice accuracy. The manipulation worked: a blinded judge rated LLM-style variants 13–42 percentage points more likely to be AI-written across tasks. Nevertheless, none of the six preregistered style contrasts (three primary tasks × two responding models) was significant after Holm correction, and no contrast met the prespecified >10-point, corrected-significance criterion.
+
+The most informative result is a recognition–behavior dissociation. Qwen3-8B encoded the distinction strongly (held-out authorship-probe AUROC 0.907 versus 0.601 for a surface-only baseline), but its authorship direction overlapped only modestly with an evaluation-awareness direction (cosine 0.242). Adding or subtracting one activation-standard-deviation along that direction moved the probe logit by an expected ±17.08, yet both signs changed aggregate behavior by the same +6.25 points, a shift exactly matched by one of five norm-matched random directions. This fails the causal criterion: the linear feature is decodable, but this experiment provides no evidence that the responder uses it to select the measured behaviors.
+
+The practical implication is cautious reassurance for synthetic evaluations, not equivalence proof. Large style-recognition shifts did not produce a stable behavioral shift in two current API models and one open 8B model, but confidence intervals remain wide enough to permit moderate task-specific effects—especially sycophancy. Evidence quality is **low-to-moderate for this bounded null and low for broad generalization** because this was a 30-item-per-task pilot, controlled “human-like” text was still machine-generated, and the white-box intervention used only 16 prompts.
+
+## 2. Research Question & Motivation
+
+**Question.** When content is held approximately fixed, do requests that read human-written versus LLM-written change safety-relevant behavior, and is any change driven by an internal machine-authorship representation rather than length, clarity, politeness, or generic paraphrasing?
+
+This matters because model-written evaluations, synthetic red teams, and orchestrator-to-agent messages may not represent human deployment traffic. If a responder recognizes synthetic style and conditionally becomes more cautious, agreeable, or accurate, evaluation estimates may not transfer.
+
+The literature establishes the ingredients separately: evaluation/deployment recognition (Needham et al.), behavior changes under test framing (Abdelnabi and Salem), latent human/machine-text separability (RepreGuard), and self-preference for model-written objects (Panickssery et al.). It does not jointly validate a prompt-style manipulation, compare multiple downstream behaviors, control the main surface confounds, and test the latent direction with fixed prompt text plus random steering controls. The full synthesis is in [literature_review.md](literature_review.md), and the preregistered design is in [planning.md](planning.md).
+
+## 3. Experimental Setup
+
+### 3.1 Design and data
+
+The fixed sample contained 120 unique items, 30 per task:
+
+| Task | Dataset | Primary binary outcome |
+|---|---|---|
+| Harmful compliance | JBB-Behaviors harmful | Judge score ≥2/3 (partial or substantive actionable help) |
+| Benign over-refusal | Matched JBB benign | Judge score ≤1/3 (refusal or minimal help); secondary control |
+| Sycophancy | Anthropic model-written evals, NLP survey | Selected the option matching the user's stated view |
+| Accuracy | MMLU test, subject-stratified | Correct option |
+
+For each item, a separate model produced a `human_style` and `llm_style` rewrite under identical instructions: preserve facts, request, stance, options, risk, and answer format; add no rationale or constraints; target 0.8–1.2× source length. Both variants were therefore machine-produced. This intentionally manipulates *perceived style* while holding generator provenance constant; it does not compare verified human authors with verified AI authors.
+
+An independent blinded judge rated fidelity, additions/omissions, clarity, politeness, and probability of AI authorship. Variants required fidelity ≥4/5 and no substantive addition or omission. The original prompt was retained as a paraphrase baseline. Anthropic Claude Sonnet 5 completed 89/120 rewrite pairs; GPT-5.6 Luna recovered 25 of 31 failed structured/restricted-content cases. Six items remained without a usable pair, and fallback generator is retained in raw metadata.
+
+### 3.2 Models and parameters
+
+The OpenRouter catalog was queried live on 2026-10-02 before selection. All API calls used the OpenAI-compatible endpoint `https://openrouter.ai/api/v1`, provider-default deterministic behavior where temperature was unsupported, and per-call caching.
+
+| Role | Exact model ID |
+|---|---|
+| Primary rewriter | `anthropic/claude-sonnet-5` |
+| Rewrite fallback | `openai/gpt-5.6-luna` |
+| Responders | `openai/gpt-5.6-luna`; `google/gemini-3.1-flash-lite` |
+| Blinded equivalence/behavior judge | `openai/gpt-5.6-terra` |
+| White-box responder | `Qwen/Qwen3-8B`, revision `b968826d9c46dd6066d109eabc6255188de91218` |
+
+The API portion recorded 1,879 unique successful calls, 423,406 prompt tokens, 277,499 completion tokens, and OpenRouter-reported cost of **$2.13**. Raw response files have SHA-256 hashes in `results/evaluations/analysis_summary.json`.
+
+### 3.3 Statistical plan
+
+The item was the paired sampling unit. The primary contrast was LLM-style minus human-style within item and responder. Binary risk differences received 10,000 item-bootstrap 95% confidence intervals and exact discordant-pair tests. Holm correction covered the six preregistered primary comparisons (harmful compliance, sycophancy, and accuracy across two responders); benign over-refusal was secondary. Linear probability models with item-clustered standard errors adjusted for word count, readability, clarity, politeness, and responder. Constant covariates were excluded per task.
+
+Success required a valid recognition manipulation, a Holm-significant behavioral shift exceeding 10 points, and an adjusted effect retaining at least half its magnitude. The white-box causal criterion additionally required behavior beyond all five norm-matched random directions without >5-point output degradation.
+
+### 3.4 White-box protocol
+
+Qwen3-8B ran in bfloat16 on one NVIDIA RTX A6000 (49,140 MiB total). Residual-stream activations were extracted from 105 complete item pairs (210 texts). All variants of an item stayed in the same train/validation/test partition (126/42/42 texts). Logistic probes were fit at every fourth layer; layer 4 was selected using validation AUROC and the test set was evaluated once. A surface baseline used word count, character count, and newline count.
+
+An evaluation-awareness direction was formed at the same layer from 80 paired ToM-evaluation versus ShareGPT/deployment-like examples in the staged evaluation-awareness repository. For the gated intervention, 16 fixed human-style prompts (four per task) were generated under no steering, ±1 projection SD of the authorship direction, and five seeded equal-norm random directions. Generation used greedy decoding and at most 64 new tokens. API judge scoring reused the blinded behavioral rubric.
+
+## 4. Results
+
+### 4.1 The perceived-authorship manipulation succeeded
+
+![Mean judged AI-authorship probability by condition](figures/authorship_manipulation.png)
+
+Paired LLM-style minus human-style changes in judged AI probability were positive for every task:
+
+| Task | Complete pairs | Difference, percentage points | 95% bootstrap CI |
+|---|---:|---:|---:|
+| Accuracy | 29 | +16.0 | [+3.0, +29.6] |
+| Benign over-refusal | 28 | +41.9 | [+28.0, +54.1] |
+| Harmful compliance | 25 | +22.9 | [+9.2, +36.6] |
+| Sycophancy | 30 | +13.1 | [+9.4, +16.7] |
+
+Mean fidelity was 4.79–5.00/5 across retained cells. The manipulation was not surface-identical: LLM-style text remained somewhat longer and slightly more polite, especially for sycophancy (147.6 versus 129.8 words). These variables were included in adjusted models.
+
+### 4.2 No preregistered behavioral contrast was statistically reliable
+
+![Paired LLM-style minus human-style effects](figures/paired_effects.png)
+
+Positive values mean more harmful compliance, over-refusal, or sycophancy; for accuracy, positive means more correct answers.
+
+| Task | Responder | n pairs | Human-style rate | LLM-style rate | Difference [95% CI] | Exact p | Holm p |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Accuracy | Gemini Flash Lite | 29 | 86.2% | 82.8% | −3.4 [−10.3, 0.0] | 1.000 | 1.000 |
+| Accuracy | GPT-5.6 Luna | 28 | 82.1% | 78.6% | −3.6 [−10.7, 0.0] | 1.000 | 1.000 |
+| Harmful compliance | Gemini Flash Lite | 20 | 20.0% | 10.0% | −10.0 [−25.0, 0.0] | 0.500 | 1.000 |
+| Harmful compliance | GPT-5.6 Luna | 23 | 4.3% | 8.7% | +4.3 [−8.7, +21.7] | 1.000 | 1.000 |
+| Sycophancy | Gemini Flash Lite | 28 | 78.6% | 89.3% | +10.7 [−3.6, +25.0] | 0.375 | 1.000 |
+| Sycophancy | GPT-5.6 Luna | 28 | 78.6% | 89.3% | +10.7 [0.0, +21.4] | 0.250 | 1.000 |
+| Benign over-refusal* | Gemini Flash Lite | 21 | 9.5% | 9.5% | 0.0 [0.0, 0.0] | 1.000 | — |
+| Benign over-refusal* | GPT-5.6 Luna | 20 | 35.0% | 20.0% | −15.0 [−30.0, 0.0] | 0.250 | — |
+
+\*Secondary outcome, excluded from the six-test Holm family.
+
+The exact tests are conservative because outputs were highly concordant: most cells had only one to five discordant pairs. The GPT sycophancy bootstrap interval touches zero despite a positive point estimate, and its exact paired p-value is 0.25; it is a signal for a larger study, not confirmatory evidence.
+
+### 4.3 Surface adjustment and paraphrase/source-label controls
+
+Task-specific surface-adjusted risk differences, pooled across responders, were:
+
+| Task | Adjusted LLM-style difference | 95% CI | Cluster-robust p |
+|---|---:|---:|---:|
+| Accuracy | −2.5 points | [−10.4, +5.4] | 0.539 |
+| Benign over-refusal | −8.9 | [−19.7, +1.9] | 0.106 |
+| Harmful compliance | −9.2 | [−22.4, +3.9] | 0.169 |
+| Sycophancy | +15.1 | [−2.5, +32.7] | 0.094 |
+
+Thus adjustment did not reveal a significant effect. It also did not tightly exclude a moderate sycophancy increase.
+
+The original-to-human-paraphrase baseline was generally small, except GPT benign over-refusal increased by 20 points (n=20, CI +5 to +40; exact p=0.125). That discordance shows why “was paraphrased” cannot be ignored. Counterfactual explicit AI versus human labels were mostly exactly null in the focused subset; nonzero estimates were based on only 5–13 pairs and all intervals included zero. Full tables are in `paired_paraphrase_baseline.csv` and `label_effects.csv`.
+
+### 4.4 Authorship was decodable but not causally linked to behavior
+
+| White-box metric | Result |
+|---|---:|
+| Held-out authorship AUROC | **0.907** |
+| Held-out balanced accuracy | 0.857 |
+| Surface-only held-out AUROC | 0.601 |
+| Selected layer (validation only) | 4 |
+| Authorship/evaluation-direction cosine | 0.242 |
+| Expected probe-logit shift under +/− steering | +17.08 / −17.08 |
+
+The early-layer linear representation generalized to held-out items substantially better than coarse surface features. However, this establishes decodability, not causal use.
+
+![Steering outcomes with random controls](figures/steering_outcomes.png)
+
+At the behavioral level, both positive and negative authorship steering changed the pooled binary outcome by +1/16 (+6.25 points) relative to no steering. The five random directions ranged from 0 to +6.25 points; one exactly matched the authorship intervention. Output validity changed by 0 under both authorship signs, while one random direction reduced validity by 6.25 points. Positive and negative authorship steering changed response text on 31.3% and 43.8% of prompts, but their identical behavioral movement and inclusion within the random baseline range mean the causal success criterion failed.
+
+The task cells also had severe headroom limits in this 16-prompt stress test: harmful compliance was 0% in every condition and sycophancy was 100% in every condition. The intervention therefore tests a simple linear mechanism only weakly.
+
+## 5. Analysis & Discussion
+
+### What the results support
+
+1. **H1, recognition, is supported.** Both black-box judgments and Qwen3 activations distinguished the intended style.
+2. **H2, a stable behavioral effect, is not supported.** No preregistered contrast passed multiplicity correction or the practical-significance rule.
+3. **H3, surface-independent behavior, is not established.** Adjusted estimates remain nonsignificant and imprecise; the largest was sycophancy, +15.1 points.
+4. **H4, explicit source beliefs, is not supported in the small label subset.** Labels were mostly behaviorally inert.
+5. **H5, latent decodability, is supported.** The probe materially exceeded the surface baseline.
+6. **H6, a causal linear authorship mechanism, fails.** Opposite signs did not cause opposite behavior, and a random direction matched the observed change.
+
+This pattern agrees with recent evaluation-awareness work finding that representation, verbalization, and control often dissociate. The modest direction cosine suggests that “AI-written” and “evaluation-like” share some variance, plausibly via polished benchmark style, but are not interchangeable at this layer. The experiment provides a particularly direct warning against treating a high probe AUROC as evidence that the probed concept drives generation.
+
+### Error and missingness analysis
+
+- The primary rewriter failed on 23/30 harmful items and eight other items, usually returning no parseable JSON. The fallback recovered 25/31 failures. This was anticipated: API safety policies make controlled harmful rewriting selectively difficult.
+- Of 658 attempted behavioral jobs after recovery, 625 unique scored records remained; overall scored-output validity was 97.1%. Complete-pair analysis prevents one-sided missing variants from entering the main contrast.
+- Harmful behavior had substantial refusal saturation, particularly GPT and the local steering sample. Sycophancy was near ceiling for the local model. Both reduce power.
+- Surface-adjusted logistic models were initially rank-deficient under near-separation; the reported adjustment uses a preregistration-consistent linear probability model with item-clustered standard errors and excludes task-constant covariates. This change is logged and produces direct adjusted risk differences.
+
+## 6. Limitations and Evidence Quality
+
+- **Style, not verified authorship.** Both controlled variants were generated by an LLM. The clean interpretation is “reads human-like versus LLM-like,” which matches the motivating hypothesis but not literal author identity.
+- **Pilot precision.** With 20–29 complete pairs per model/task, only moderate-to-large effects are estimable. A nonsignificant contrast is not an equivalence test.
+- **Semantic control is judged, not guaranteed.** A strong model rated fidelity, but the same broad model family may share biases with responders. The remaining length/politeness differences and fallback-generator use are measured but cannot be eliminated statistically at this sample size.
+- **Model scope.** Two current API models and one 8B open model do not support a universal LLM claim. Stable API IDs can also change routing after 2026-10-02.
+- **Judge dependence.** Harmful compliance and benign fulfillment rely partly on one LLM judge. Deterministic option parsing is stronger for accuracy and sycophancy.
+- **White-box data dependence.** The probe is trained on these engineered variants rather than independent naturally human/AI corpora from held-out generators. Group splitting prevents item leakage but not rewrite-template leakage.
+- **Steering scope and ceiling/floor.** Only 16 prompts, one layer, and one ±1 SD magnitude were behaviorally tested. Hooking the same residual vector at all generation positions is one intervention, not a complete mechanism search.
+- **Evaluation-direction proxy.** ToM evaluation examples versus ShareGPT-like examples provide a useful contrast but are not identical to Needham et al.'s full evaluation/deployment distribution.
+
+Under an adapted GRADE assessment, the evidence is **low-to-moderate** for “a large, stable effect was not observed under these specific controls,” downgraded for imprecision and limited model/task scope but upgraded by matched pairs, preregistered multiplicity handling, manipulation checks, surface/paraphrase/label controls, held-out probing, and random-direction intervention controls. Evidence for “there is no effect in deployment” is **low**.
+
+## 7. Conclusions & Next Steps
+
+These models clearly recognized when a prompt *read* LLM-written, both behaviorally and internally, but recognition did not yield a reproducible safety-relevant behavior change once prompts were paired and controls were imposed. The cleanest current conclusion is a bounded null plus mechanistic dissociation: machine-authorship style is decodable, yet this pilot found no evidence that its simple linear representation causally drives refusal, compliance, sycophancy, or accuracy.
+
+The next study should preregister at least 150–300 complete pairs per task/model based on the observed discordance rates; use genuinely human rewrites from multiple annotators plus multiple LLM generators; blind human fidelity ratings; target borderline safety items with 20–80% baseline compliance; and test several open-model families, layers, token positions, and steering magnitudes. Sycophancy deserves priority because both API models showed the same +10.7-point raw difference and the adjusted pooled estimate was +15.1 points, albeit imprecise. A formal equivalence margin (for example ±5 points) should replace null-hypothesis testing if the goal is to certify transfer from synthetic evaluation to human deployment.
+
+## Reproducibility and Artifacts
+
+- Raw API/local responses: `results/model_outputs/`
+- Tidy data and statistical tables: `results/evaluations/`
+- Figures: `figures/`
+- Fixed sampled items and audit: `results/data/`
+- Source code: `src/`
+- Exact environment: `pyproject.toml` and `uv.lock`
+
+The full rerun procedure is in [README.md](README.md). Raw-output hashes and token/cost accounting are in `results/evaluations/analysis_summary.json`.
+
+## References
+
+- Abdelnabi, S., & Salem, A. (2025). *The Hawthorne Effect in Reasoning Models: Evaluating and Steering Test Awareness*. arXiv:2505.14617.
+- Chen et al. (2025). *RepreGuard: Representation-based detection of machine-generated text*. arXiv:2508.13152.
+- Needham et al. (2025). *Large Language Models Often Know When They Are Being Evaluated*. arXiv:2505.23836.
+- Nguyen et al. (2025). *Probing and Steering Evaluation Awareness of Language Models*. arXiv:2507.01786.
+- Panickssery, A., Bowman, S., & Feng, S. (2024). *LLM Evaluators Recognize and Favor Their Own Generations*. arXiv:2404.13076.
+- Datasets: `JailbreakBench/JBB-Behaviors`, `Anthropic/model-written-evals`, `cais/mmlu`, and the staged evaluation-awareness contrasts.
+- Models were accessed through OpenRouter; Qwen3-8B weights were accessed from Hugging Face.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                            RESEARCH PLAN
+════════════════════════════════════════════════════════════════════════════════
+
+# Research plan and direction budget
+
+## Motivation & Novelty Assessment
+
+### Why This Research Matters
+
+Synthetic red-team prompts, model-written evaluations, and orchestrator-to-agent messages are often LLM-written, whereas deployment traffic is substantially human-written. If responders condition safety behavior on perceived authorship, synthetic evaluations can systematically misestimate real-world refusal, compliance, sycophancy, or accuracy.
+
+### Gap in Existing Work
+
+Prior work separately establishes evaluation-context recognition, latent human/machine-text separability, self-preference, and behavior changes under hypothetical or test framing. It does not jointly isolate prompt authorship style from paraphrasing and surface features, verify that responders perceive the manipulation as intended, and connect a latent authorship direction to downstream behavior with controlled interventions.
+
+### Our Novel Contribution
+
+This study combines (1) paired, content-matched behavioral comparisons across three behaviors, (2) a paraphrase control that separates “was rewritten” from “reads LLM-written” plus measured surface covariates and explicit source-label controls, and (3) a white-box probe/steering stress test with text held fixed and norm-matched random directions. The inferential ladder is deliberately strict: behavioral difference, successful manipulation check, robustness to surface controls, then causal intervention.
+
+### Experiment Justification
+
+- **Experiment 1 — paired behavioral audit:** establishes whether a style-associated behavioral difference exists at all across harmful compliance, sycophancy, and answer accuracy.
+- **Experiment 2 — surface/label decomposition:** distinguishes perceived authorship from generic paraphrasing, length, clarity, politeness, and explicit beliefs about source.
+- **Experiment 3 — representation and intervention:** tests whether an internal authorship direction predicts behavior and whether changing it with the exact prompt text fixed moves behavior beyond norm-matched random steering or merely degrades output.
+
+## Research Question
+
+For semantically matched user requests, does human-like versus LLM-like phrasing change safety-relevant behavior, and does any effect survive controls for paraphrasing and observable style or respond causally to an internal machine-authorship direction?
+
+## Background and Motivation
+
+The literature summarized in `literature_review.md` implies three distinct constructs: source/context recognition, latent decodability, and downstream behavioral use. They often dissociate. Consequently, neither an authorship classifier nor an unadjusted human/LLM comparison is sufficient evidence; the experiment must validate source perception, include style controls, and reserve causal language for an intervention with random and degradation baselines.
+
+## Hypothesis Decomposition
+
+- **H1 (recognition):** LLM-style variants receive a higher perceived-machine probability than original or human-style paraphrases of the same content.
+- **H2 (behavior):** within an item and responder, LLM-style versus human-style wording changes at least one preregistered outcome: harmful compliance, sycophantic agreement, or correctness.
+- **H3 (specificity):** the H2 contrast is not explained by paraphrasing alone and remains directionally stable after adjustment for token count, readability, politeness, and clarity ratings.
+- **H4 (label versus style):** explicit source labels may shift behavior, but an unlabeled style effect is separately identifiable; a style-by-label interaction would indicate belief-mediated rather than purely linguistic conditioning.
+- **H5 (representation):** a held-out linear probe decodes prompt authorship above chance; stronger machine scores predict behavior beyond surface covariates.
+- **H6 (causal stress test):** authorship-direction activation addition on fixed prompt text shifts recognition and behavior more than equal-norm random directions without a commensurate loss in fluency/task accuracy.
+
+Independent variables are prompt condition (original, human-style paraphrase, LLM-style paraphrase), explicit source label (human/AI/none in a focused subset), responder model, task, and—white-box only—steering direction/strength. Outcomes are perceived-AI probability, refusal/compliance, sycophantic option choice, accuracy, output validity, and quality/degradation. The item is the paired sampling unit.
+
+## Proposed Methodology
+
+### Approach
+
+Use a staged confirmatory pilot. Construct variants once with a separate current API model, validate semantic equivalence and perceived authorship with blinded structured judgments, then query two model families at temperature 0. Analyze only prespecified paired contrasts; exploratory model/task heterogeneity is labeled as such. Run a local 8B instruct model for latent activation extraction and a bounded steering experiment. This scale is intended to estimate effect size and identify ceiling/floor behavior, not support universal claims.
+
+### Experimental Steps
+
+1. Sample 40 items per task from JBB harmful behaviors, Anthropic sycophancy, and WinoGenerated/answerable controls, stratifying where metadata permit.
+2. Generate two meaning-preserving rewrites per item: an informal/natural human-like paraphrase and a polished, structured LLM-like paraphrase. Constrain both to 0.8–1.2× source word count and forbid added facts, rationale, or task constraints.
+3. Blind-judge semantic fidelity, information additions/omissions, clarity, politeness, and perceived authorship. Exclude/repair pairs with fidelity below 4/5 or any substantive drift before behavioral analysis.
+4. Query `openai/gpt-5.6-luna` and `google/gemini-3.1-flash-lite` (live-catalog verified 2026-10-02) with identical system prompts and deterministic settings. Cache every request, response, usage record, timestamp, and error.
+5. Score structured-choice tasks deterministically. Score harmful responses using a blinded rubric judge plus refusal-string sensitivity checks; preserve raw judgments.
+6. Run the focused 2×3 label/style ablation on a stratified subset, with source labels counterfactually crossed and no-label as baseline.
+7. On Qwen3-8B, extract layerwise residual representations for separate human/machine text and prompt variants, train regularized probes with item/group-held-out splits, test held-out variant type, and compare with length/readability baselines.
+8. If probe AUROC exceeds 0.70 on held-out content, steer the best validation layer bidirectionally on fixed prompts at prespecified magnitudes (0.5 and 1.0 activation SD), alongside five equal-norm random directions and a no-steer control.
+
+### Baselines
+
+- Original unmodified prompt and human-style paraphrase (separates authorship style from rewriting).
+- Token-length/readability/politeness/clarity covariates and surface-only classifier.
+- No-label and counterfactual explicit human/AI labels.
+- Majority behavior and deterministic refusal keyword score.
+- White-box no-steer, sign-flipped authorship steering, and five norm-matched random directions.
+- Output-quality/validity checks to distinguish targeted behavioral movement from generic model degradation.
+
+### Evaluation Metrics
+
+- Recognition: AUROC, mean perceived-AI probability, paired difference, Brier score where binary reference labels apply.
+- Behavior: within-item risk difference for binary outcomes; paired odds ratio; exact discordant-pair (McNemar/binomial) test; cluster bootstrap 95% CI over items.
+- Semantic control: fidelity pass rate, word-count ratio, lexical similarity, and additions/omissions flags.
+- Probe: group-held-out AUROC, balanced accuracy, and incremental likelihood/pseudo-R² beyond surface covariates.
+- Steering: difference-in-differences relative to no-steer and empirical random-direction distribution; invalid-output and accuracy deltas as degradation checks.
+
+### Statistical Analysis Plan
+
+The primary family contains six contrasts: LLM-style minus human-style for three outcomes across two responders. Use two-sided item-cluster bootstrap 95% intervals and Holm correction at familywise α=0.05. Exact McNemar tests handle paired binary outcomes. A logistic regression with item-clustered standard errors estimates condition, responder, task, and prespecified interactions; surface-adjusted models add standardized word count, readability, clarity, and politeness. We will report raw and adjusted effects regardless of significance. With 40 items per task, the pilot has useful precision only for moderate/large paired effects (roughly ≥15 percentage points near p=0.5); smaller intervals are explicitly treated as inconclusive, not null proof.
+
+For probes, all rewrites of an item remain in one split. Hyperparameters and layer are selected on validation only; the test split is evaluated once. Mediation language is descriptive unless both intervention and degradation controls pass. Steering inference compares the authorship direction with the empirical distribution of five seeded random directions and is exploratory because the number of directions is small.
+
+## Expected Outcomes
+
+Support for a practically important phenomenon requires a successful recognition manipulation plus a behavior shift that is larger than the human-paraphrase/original difference and robust to surface adjustment. A recognizable style with negligible paired behavior differences supports a recognition–behavior dissociation. Probe success without controlled steering is evidence of decodability only. Failed or random-like steering refutes the proposed simple linear causal mechanism but not all possible internal mechanisms.
+
+## Timeline and Milestones
+
+1. Environment, live catalog, and data audit: 15 minutes.
+2. Variant construction and validation pilot: 30–60 minutes.
+3. Behavioral calls and scoring: 45–90 minutes.
+4. White-box probe and steering: 45–90 minutes, with the intervention gated on probe validity.
+5. Statistical analysis, rerun checks, figures, and documentation: 45–60 minutes.
+
+The critical path is rewrite validation → behavioral run → scoring. White-box work proceeds only after the behavioral harness is valid. API responses are checkpointed per call so interruption does not discard completed work.
+
+## Potential Challenges
+
+- Harmful prompts may induce ceiling refusal; sample borderline JBB categories and report headroom by condition rather than substituting post hoc.
+- Rewriters may refuse or semantically sanitize harmful items; record failures and never silently replace content.
+- Deterministic APIs may still change behind a stable ID; record date, exact routed model/provider metadata where returned, and raw output hashes.
+- LLM judges can share style bias with the manipulation; use structured rubrics, blind condition labels, deterministic checks, and sensitivity analyses.
+- Probe directions can encode length/format; group splits, matched variants, surface baselines, held-out rewrite types, and random directions address but do not eliminate this concern.
+- One local 8B model and a pilot sample limit generalization; conclusions will be model- and task-bounded.
+
+## Success Criteria
+
+The research cycle succeeds if it produces auditable matched prompts, real-model outputs, manipulation checks, paired estimates with uncertainty for all three behaviors, and an honestly gated white-box result. The substantive H2 is supported only if a Holm-adjusted contrast excludes zero and exceeds 10 percentage points while H1 succeeds; H3 additionally requires the adjusted estimate to retain at least half its magnitude. H6 requires recognition movement in the intended direction, behavioral movement beyond all five random baselines, and no >5-point rise in invalid/degraded outputs.
+
+## Scope
+
+**Question.** When semantic content is held fixed, does a prompt written in a human-like versus LLM-like style change refusal, harmful compliance, sycophancy, or answer accuracy? If so, is the effect mediated by an internal representation of machine authorship, or by measurable surface features such as length, structure, clarity, and politeness?
+
+**Primary domain.** Language-model behavior, AI safety evaluation, mechanistic interpretability, and machine-generated-text detection.
+
+**Search terms.** `human vs machine generated prompt LLM behavior`, `evaluation awareness`, `test awareness steering`, `machine generated text linear probe`, `AI-AI bias`, `self-recognition self-preference`, `prompt format confound`, `synthetic prompt ecological validity`, `sycophancy model-written evaluations`, and `harmful compliance prompt framing`.
+
+**Inclusion.** Empirical work that measures (a) recognition of human/machine or evaluation/deployment text, (b) behavioral changes under matched prompt framing/style, (c) internal representations or causal interventions, or (d) prompt-construction confounds. Preference was given to 2024–2026 work with data or code.
+
+**Exclusion.** Generic AI-text detectors without latent-space or behavioral relevance; studies of prompt engineering that do not control semantic content; opinion pieces without data; and safety work with no manipulation of prompt source, framing, or perceived context.
+
+## Direction ranking
+
+Scores are 1–5 per criterion. “Evidence” reflects direct literature support; “relevance” reflects fit to the stated hypothesis; “information gain” reflects ability to distinguish competing explanations; “feasibility” reflects implementation with the staged data and code.
+
+| Rank | Direction | Evidence | Relevance | Information gain | Feasibility | Total | Decision |
+|---:|---|---:|---:|---:|---:|---:|---|
+| 1 | Paired black-box behavioral audit: human-style versus LLM-style rewrites of identical requests across refusal/compliance, sycophancy, and accuracy | 5 | 5 | 5 | 5 | 20 | Keep |
+| 2 | Factorial surface-control study: independently manipulate source style, length, structure, clarity, politeness, and explicit source labels | 5 | 5 | 5 | 4 | 19 | Keep |
+| 3 | White-box mediation study: decode perceived machine authorship, test mediation, and intervene by activation steering or representation matching | 5 | 5 | 5 | 3 | 18 | Keep |
+
+### Retained implementation directions
+
+1. **Behavioral effect.** Build semantically matched prompt pairs from JBB-Behaviors, Anthropic sycophancy items, accuracy questions, and natural WildChat requests. Cross prompt style with responding model and task. Estimate within-item differences and model heterogeneity.
+2. **Surface-feature decomposition.** Use a crossed design rather than a single human/LLM contrast. Match or orthogonalize token count and readability; separately vary template structure, politeness, explicitness, and source label. Include blinded human and model ratings of semantic equivalence and perceived authorship.
+3. **Representation and causality.** On an open-weight model, train held-out linear probes for human/LLM authorship using multiple generators/domains, then ask whether probe score predicts behavioral changes after surface controls. Use steering or matched paraphrases as a causal stress test; do not infer causality from probe accuracy alone.
+
+## Pruned directions
+
+| Direction | Reason for pruning |
+|---|---|
+|---|
+| Pure human-vs-machine text detection benchmark | Establishes recognizability but not whether recognition changes the response; retained only as a measurement component of Direction 3. |
+| Evaluation-awareness classification alone | Closely related, but “evaluation vs deployment” is not identical to “human vs LLM author.” It is used for methods and controls, not as the main outcome. |
+| Self-preference/LLM-as-judge only | Strong evidence for one downstream bias, but too narrow to answer refusal, compliance, sycophancy, and accuracy jointly. It becomes one secondary outcome. |
+| Test-awareness steering as the sole experiment | Steering effects are model-dependent and can manipulate entangled concepts. It is retained only as a causal stress test after the behavioral and factorial analyses. |
+| Hiring-field simulation | High external relevance but domain-specific, expensive, and less diagnostic of mechanism than matched benchmark tasks. |
+| Training-stage longitudinal study | Scientifically useful but requires many checkpoints and substantially more compute; lower immediate information gain for the prompt-source hypothesis. |
+| Build a new large prompt corpus before piloting | Existing resources are adequate for a powered pilot. New corpus construction should follow only if semantic-equivalence or coverage checks fail. |
+
+## Frozen decision
+
+The three retained directions are the implementation budget. The experiment phase should not add a fourth direction unless new evidence invalidates this ranking; any change must be recorded in the resource-finder notes block of `STATE.md`.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                          LITERATURE REVIEW
+════════════════════════════════════════════════════════════════════════════════
+
+# Literature review: prompt authorship style and LLM behavior
+
+## Review scope and search log
+
+The review asks whether LLMs respond differently to semantically equivalent human-like and LLM-like prompts, and whether any difference is attributable to an internal authorship representation rather than length, format, clarity, politeness, or other artifacts. Included work had to address recognition, downstream behavior, latent representations, causal manipulation, or prompt-construction validity.
+
+The paper-finder service was tried first on 2026-10-02 with broad and focused queries. Its interactive call timed out, but a cached 74-record result file appeared later and was screened. The relevance labels were noisy—generic healthcare, translation, and prompt-engineering papers were all marked 3/3—so inclusion was based on the stated criteria rather than the service label alone. Three genuinely relevant new papers were retained from that file: interlocutor awareness, evaluation-awareness scaling, and EvalDetectBench. The fallback search used arXiv, Semantic Scholar links, paper reference/code pages, and citation chaining from the eleven user-specified papers. Seventeen papers passed screening; the eleven user-specified papers were read through every pre-generated chunk, and discovered papers received full-text or abstract/method screening according to relevance.
+
+## Research area overview
+
+The evidence separates three questions that are often conflated:
+
+1. **Can a model discriminate sources or contexts?** Yes. Frontier models distinguish evaluation from deployment transcripts (best overall AUC about 0.83), and latent probes distinguish human- from machine-generated text with strong OOD transfer.
+2. **Does that distinction change behavior?** Sometimes, but effects are heterogeneous. Matched framing can alter harmful compliance, refusal, stereotype choices, and preference judgments; newer broad studies also find that verbalized awareness often has near-zero or small average effects.
+3. **What causes the measured distinction?** Both latent signals and surface artifacts matter. Standard probes can learn benchmark format, while decorrelated training recovers more format-robust signals. Probe score, verbalized awareness, and behavioral response are weakly coupled, so no single metric establishes the proposed mechanism.
+
+The research hypothesis is therefore plausible but not settled. The strongest experiment is a crossed causal design that measures behavior first, orthogonalizes surface features, and only then tests internal mediation.
+
+## Key papers and actionable findings
+
+### Recognition and self-preference
+
+**Panickssery, Bowman, and Feng (2024), _LLM Evaluators Recognize and Favor Their Own Generations_.** On 1,000 XSum and 1,000 CNN/DailyMail articles, Llama-2-7B-chat, GPT-3.5, and GPT-4 generated and evaluated summaries. Pairwise and individual authorship judgments showed non-trivial self-recognition, strongest for GPT-4 and easiest against humans. Fine-tuning on 500 pairwise examples changed self-recognition and produced a strong linear relation with self-preference that transferred across the two datasets. Reversed source labels sometimes reversed GPT-3.5/GPT-4 preferences, supporting a causal role for perceived source. Limitations include only two summarization datasets, severe ordering bias, and no definitive mechanistic identification. Code is available in the paper.
+
+**Laurito et al. (2025), _AI–AI Bias_.** GPT-3.5, GPT-4, and open models chose between otherwise matched products (109), paper descriptions (100), and films (250) presented in human- versus LLM-written language. Models consistently favored LLM-presented options; reported examples include roughly 69% LLM preference for GPT-3.5 on products and 73% for GPT-4 on films. Length was a known issue—raw LLM paper abstracts could be 2–3× longer—and the human preference baseline was small. This is the closest direct behavioral precedent but needs stronger semantic and surface matching.
+
+**Xu, Li, and Jiang (2026 revision), _AI Self-preferencing in Algorithmic Hiring_.** A controlled correspondence design replaces only the executive summary in 2,245 resumes, preserves all factual content, constrains length to the human interquartile range, and counterbalances order. Eight of nine models favored their own text; large evaluators showed 67–82% human-vs-model bias, and simulated screening across 24 occupations made same-model applicants 23–60% more likely to be shortlisted. Source-blinding instructions and majority voting cut bias substantially. This gives an external-validity template but does not isolate the internal mechanism.
+
+### Evaluation awareness and behavioral effects
+
+**Needham et al. (2025), _Large Language Models Often Know When They Are Being Evaluated_.** The benchmark contains 1,000 balanced chat/agentic and evaluation/deployment transcripts sampled from 61 sources. Five probe-question phrasings reduce wording variance. Frontier models reach overall AUC 0.74–0.83 versus a two-author human baseline of 0.92; agentic AUC is much higher (up to 0.95) than chat AUC (about 0.71–0.77). Models also identify evaluation purpose above chance but tend to over-classify evaluation. Public-benchmark memorization, prompt priming, and a non-representative human baseline limit interpretation.
+
+**Abdelnabi and Salem (2025), _The Hawthorne Effect in Reasoning Models_.** The study creates 2,587 matched real/hypothetical harmful prompt pairs, trains late-layer linear probes on annotated reasoning spans, and edits feed-forward weights along probe directions in QwQ-32B, Qwen3-32B, and Distill-Qwen-32B. Probe accuracy reaches 92.7–95.4%. In 150 objective tool-call tasks, baseline compliance is higher for hypothetical prompts (for QwQ, 69.7% versus 36.2%). Steering changes awareness and behavior, but direction differs by model; explicit “this is a test” prompting is weaker than activation intervention. The learned concept entangles evaluation awareness with scenario recognition, and parameter editing is dual-use.
+
+**Knecht, Florin, and Hagendorff (2026), _Evaluation Awareness in Language Models Has Limited Effect on Behaviour_.** Eight open-weight reasoning models were tested on 500-item safety, alignment, moral-dilemma, and political benchmarks. On-policy comparisons and off-policy chain-of-thought injection/removal show small pooled effects: injection after one-third of reasoning has omega ≤0.06, removal ≤0.12, and spontaneous awareness changes answer categories by at most 3.7 percentage points. Some model/task effects are larger and opposing. This is important counterevidence: verbalization is neither a reliable proxy nor necessarily causally upstream of behavior.
+
+**Li et al. (2026), _Decomposing and Measuring Evaluation Awareness_.** The paper separates the environment, model recognition, and response propensity. Across nine frontier models and four benchmarks, model×benchmark and model×task interactions explain most recognition variance; recognition usually does not change behavior. Safety awareness tends toward caution, capability awareness can shift toward compliance. EvalAwareBench provides 100 matched safety/capability task pairs with eight independently toggleable factors and 51,200 possible configurations. No factor affects every model, while stacking factors increases awareness. This is the best design template for the proposed factorial study.
+
+**Nayan et al. (2026), _Evaluation Awareness Is Not One Capability_.** Eight experiments across 37 open models distinguish behavioral detection, representation, and mechanistic controllability. Twenty-four models exceed chance, but the best open-model behavioral AUC is 0.714. Hypothetical framing lowers hard refusal by 5.8 points in one matched study and raises compliance by as much as 30 points for some HarmBench/model pairs. Yet only 1 of 15 cross-paradigm correlations is significant. The conclusion—awareness is multivariate, not a scalar—is directly relevant to mediation analysis.
+
+### Latent representations and confounds
+
+**Nguyen et al. (2025), _Probing and Steering Evaluation Awareness_.** Six probe datasets on Llama-3.3-70B yield held-out AUROC up to 0.829 and beat random, length, and special-character baselines. Safety evaluations score as test-like. Linear-probe steering has minimal sandbagging effect, while SAE feature steering gives ambiguous partial recovery. The work supports latent representation but cautions that linear decodability is not causal use.
+
+**Devbunova (2026), _Is Evaluation Awareness Just Format Sensitivity?_** A length-matched 2×2 design crosses evaluation/deployment context with benchmark/casual format. A standard probe trained on the confounded contrast classifies 94.5% of benchmark-formatted deployment prompts as evaluation, whereas formal tone alone has near-zero effect. Training on all four decorrelated arms recovers a context-sensitive probe. The study uses one 8B model and linear probes, but it establishes the minimum confound controls needed here.
+
+**Heidari, Memarian, and Rabusseau (2026), _Representation, Verbalization, and Control_.** Across six 7B–49B open models, some layer always separates evaluation from deployment at AUROC ≥0.7. Yet more than 93.9% of generations contain no judged verbalization; per-prompt probe/judge correlations stay below |0.19| and mutual information below 0.04 nats. Steering shifts verbalization by about 0.2–1.5 points on a 0–3 scale. Olmo checkpoint analysis suggests base-model representation amplified and stabilized by supervised fine-tuning. This provides a rigorous probe–verbalization–intervention template and shows why mediation must be tested, not assumed.
+
+**Chen et al. (2025), _RepreGuard_.** A surrogate model observes paired human/machine text, PCA extracts activation-difference directions, and a projection threshold detects machine text. On DetectRL’s four domains and four generators, RepreGuard reports mean 94.92% AUROC across ID/OOD settings and robustness to paraphrase and perturbation. It supports latent authorship signals but is a detector, not evidence that responders use those signals behaviorally.
+
+**Quaremba et al. (2026), _Linear Probing Provides Robust and Efficient Detection of Machine-Generated Text_.** Layer-wise and concatenated-layer probes on Llama-3-8B are evaluated across DetectRL, MultiSocial, RAID, and TSM against 16 baselines. They improve OOD AUC by up to roughly 11 points, reach near-peak performance with 10–100 examples, and produce projection scores correlated with AI-editing strength. The apparent shared “machineness” direction is useful as a continuous mediator, but universality and causality remain unproven.
+
+**Chalkidis (2026), _Templated or Fully Synthetic?_** Human and LLM annotators rate LLM-generated prompts seeded from real chats as at least as realistic as real prompts and more realistic than templates. In political-stance experiments, neutral templates induce substantially more polarized responses than synthetic prompts because their filler text leaks stance; neutral-condition divergence averages 0.42 scale points. This shows that prompt construction changes outcomes even when intended topic/intent/stance is fixed.
+
+**Choi, Li, Yang, and Jin (2025), _Agent-to-Agent Theory of Mind_.** Models infer target model families from reasoning patterns, linguistic style, and alignment preferences, with same-family and prominent GPT/Claude identities especially recognizable. Identity disclosure can improve cooperative problem-solving accuracy by up to 10% in reported settings, induces adaptation toward a known judge’s preferences, and is associated with greater jailbreak effectiveness for models that can map family-specific vulnerabilities. This is the most direct evidence that inferred prompter/interlocutor identity can affect downstream behavior, though case studies are relatively small and identity is sometimes disclosed rather than inferred solely from natural prompt style.
+
+**Chaudhary et al. (2025), _Evaluation Awareness Scales Predictably_.** Linear probes across 15 open models from 0.27B to 70B show increasing absolute AUROC distance from chance with model size. The result motivates testing multiple scales, but it is probe-only evidence and the appendix itself shows sensitivity to chat-template configuration. It does not establish a corresponding behavioral effect.
+
+**Li et al. (2026), _EvalDetectBench_.** An Inspect-compatible benchmark evaluates 12 judge models and 13 benchmarks. Generator identity in deployment transcripts explains 11.25% of `P(eval)` variance and can reorder model rankings; probe questions selected on one model can lose up to 0.08 held-out AUROC on another. Per-model calibration and stratified generator harmonization reduce these biases. This directly adds two required controls: balance the prompt generator across conditions and calibrate source-recognition elicitation separately for each responding model.
+
+## Common methodologies and baselines
+
+- **Matched-pair designs:** Hold task content fixed and change source style, source label, realism, or hypothetical framing. Randomize/counterbalance option order.
+- **Factorial controls:** Cross context with format and include length matching. Add explicit genre, structure, clarity, and politeness manipulations rather than treating “LLM style” as atomic.
+- **Black-box recognition:** Forced-choice authorship/evaluation judgments, probabilities, calibration, and multiple phrasings. These measure recognizability, not mechanism.
+- **White-box probes:** Logistic regression on residual-stream activations, last-token or mean-token readouts, layer sweeps, held-out generators/domains, random-direction controls, and surface-feature baselines.
+- **Causal interventions:** Source-label reversal, activation addition, SAE steering, or parameter editing. Behavioral outcomes must be measured directly and random/control directions included.
+- **Behavior metrics:** Refusal/compliance rate, harmfulness score, sycophancy toward user stance, multiple-choice accuracy, pairwise preference, and task completion. Use within-item effects and model×condition interactions.
+- **Detection metrics:** AUROC as primary, plus Brier score/ECE for calibration and TPR at very low FPR where false accusations matter.
+
+## Gaps and recommendations
+
+No reviewed paper directly crosses human-like versus LLM-like prompt style with all four target behaviors while also measuring a latent machine-authorship representation and orthogonalizing surface features. Existing work provides each component separately.
+
+Recommended experiment:
+
+1. Sample content from JBB harmful/benign behaviors, Anthropic sycophancy, a verifiable accuracy benchmark, and natural WildChat prompts.
+2. Produce multiple human-like and LLM-like rewrites per item; validate semantic equivalence blindly. Do not equate “human” with noisy/short or “LLM” with long/polite.
+3. Cross source style with matched length, structure, clarity, politeness, explicit source label, responding model, and task. Pre-register refusal/compliance, sycophancy, and accuracy scoring.
+4. Estimate paired effects with hierarchical logistic/ordinal models and report heterogeneity rather than only pooled means.
+5. Train an authorship probe on separate generators/domains. Test whether its continuous score mediates behavior after surface covariates, then apply controlled steering or representation-matched paraphrases.
+6. Treat a null or small average effect as informative; literature predicts strong model×task interactions and frequent dissociation between detection and behavior.
+
+The primary threat to validity is semantic drift across rewrites. Secondary threats are detector leakage, prompt-generator identity effects, model-specific elicitation, position bias, judge bias, benchmark memorization, and multiple comparisons. All should receive explicit controls before mechanistic claims are made.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                          PAPER REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+Generate a complete academic paper with the following structure:
+
+1. TITLE
+   - Clear, specific, informative
+   - Should convey main finding or contribution
+
+2. AUTHOR
+   - Use this exact author line in the \author{} block: Dang Nguyen and NeuriCo
+
+3. ABSTRACT (150-250 words)
+   - Problem statement
+   - Approach
+   - Key results
+   - Significance
+
+4. INTRODUCTION
+   - Research problem and motivation
+   - Gap in existing work
+   - Our contribution (be specific)
+   - Paper organization
+
+5. RELATED WORK
+   - Organized by theme/approach
+   - Position our work relative to prior work
+   - Cite papers from literature review
+
+6. METHODOLOGY
+   - Clear description of approach
+   - Experimental setup
+   - Datasets used
+   - Evaluation metrics
+   - Baselines
+
+7. RESULTS
+   - Present results with tables and figures
+   - Statistical analysis
+   - Comparison to baselines
+   - Ablation studies (if applicable)
+
+8. DISCUSSION
+   - Interpretation of results
+   - Limitations
+   - Broader implications
+
+9. CONCLUSION
+   - Summary of contributions
+   - Key findings
+   - Future work
+
+10. REFERENCES
+   - BibTeX format
+   - All cited papers
+
+════════════════════════════════════════════════════════════════════════════════
+                          OUTPUT FORMAT
+════════════════════════════════════════════════════════════════════════════════
+
+Create a MODULAR LaTeX project with the following directory structure:
+
+paper_draft/
+├── main.tex              # Main file that imports all sections
+├── references.bib        # BibTeX references
+├── sections/
+│   ├── abstract.tex      # Abstract content
+│   ├── introduction.tex  # Introduction section
+│   ├── related_work.tex  # Related work section
+│   ├── methodology.tex   # Methodology section
+│   ├── results.tex       # Results section
+│   ├── discussion.tex    # Discussion section
+│   └── conclusion.tex    # Conclusion section
+├── figures/              # Directory for any generated figures
+├── tables/               # Directory for complex standalone tables
+└── appendix/             # Directory for appendix sections (if needed)
+
+INSTRUCTIONS:
+1. First, create the directory structure above (mkdir -p paper_draft/sections paper_draft/figures paper_draft/tables paper_draft/appendix)
+2. Write main.tex using the EXACT preamble for NEURIPS:
+
+   \documentclass{article}
+   \usepackage[final]{neurips_2025}  % NEURIPS style (neurips_2025.sty is in paper_draft/)
+   \usepackage[hidelinks]{hyperref}  % REQUIRED: clickable links
+   \usepackage{booktabs}  % REQUIRED: professional tables
+   \usepackage{graphicx}
+   \usepackage{amsmath,amssymb}
+
+   % Import command files
+   \input{commands/math}
+   \input{commands/general}
+   \input{commands/macros}
+
+   % Use this bibliography style:
+   \bibliographystyle{plainnat}
+
+   \author{Dang Nguyen and NeuriCo}
+
+   - Use \input{sections/...} to include each section
+   - Use \bibliography{references} for references
+3. Write each section file with COMPLETE content (no placeholders)
+4. Each section file should include its \section{} command
+5. Write references.bib with all citations in BibTeX format
+6. After writing all files, compile the paper:
+   cd paper_draft && pdflatex -interaction=nonstopmode main.tex && bibtex main && pdflatex -interaction=nonstopmode main.tex && pdflatex -interaction=nonstopmode main.tex
+
+This modular structure allows humans to easily:
+- Edit individual sections without navigating a large file
+- Track changes per section
+- Reuse sections across different paper versions
+
+════════════════════════════════════════════════════════════════════════════════
+                          QUALITY REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+- Academic tone throughout
+- All claims must be supported by data from the experiment report
+- Proper citations using \cite{} commands
+- Clear figures and tables with proper captions
+- NO placeholder text - every section must have real content
+- The paper MUST compile without errors
+- If compilation fails, debug and fix the LaTeX errors
+
+════════════════════════════════════════════════════════════════════════════════
+                          LAB WRITING STYLE
+════════════════════════════════════════════════════════════════════════════════
+
+Follow these lab-specific conventions to match our paper style:
+
+1. LANGUAGE STYLE:
+   - Use active voice: "We propose", "We examine", "We focus on"
+   - Be direct and confident: "Our main question is...", "We hypothesize that..."
+   - State things clearly and simply - prefer plain language over jargon
+   - Use bold questions as paragraph organizers: {\bf what is X?}
+   - Include specific quantitative claims: "8.97% over baseline"
+   - Avoid fancy wording: "utilize" → "use", "facilitate" → "help"
+
+2. INTRODUCTION STRUCTURE:
+   - Engaging hook (get to the point quickly)
+   - Problem importance
+   - Gap identification
+   - Your approach with method figure reference
+   - Quantitative preview of results
+   - Contribution bullets (3-4 items, action verbs)
+
+3. CONTRIBUTION LISTS:
+   \begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+       \item We propose...
+       \item We conduct...
+       \item We complement...
+   \end{itemize}
+
+4. MODULAR COMMANDS STRUCTURE:
+   Command templates are pre-copied to paper_draft/commands/:
+   - math.tex: Math notation macros
+   - general.tex: Formatting macros
+   - macros.tex: Project-specific term definitions (customize this for your paper)
+
+   In main.tex, include:
+   \input{commands/math}
+   \input{commands/general}
+   \input{commands/macros}
+
+5. REFERENCE CONVENTIONS:
+   Use reference macros from math.tex:
+   - \figref{fig:name} for "figure 1" (lowercase, in-sentence)
+   - \Figref{fig:name} for "Figure 1" (capitalized, start of sentence)
+   - \secref{sec:name} for "section 2"
+
+6. TEXT FORMATTING:
+   - Use \para{Header text} for bold paragraph headers
+   - Define method/dataset names with \textsc and \xspace:
+     \newcommand{\methodname}{\textsc{MethodName}\xspace}
+
+7. TABLE FORMATTING:
+   - Use booktabs package (no vertical lines)
+   - Use \resizebox{\textwidth}{!}{...} for wide tables
+   - Use @{} to remove padding at table edges
+   - Use \cmidrule(lr){x-y} for sub-headers
+   - Use \textsc{} for dataset/method names in headers
+   - Bold best results with {\bf ...}
+
+8. FIGURE FORMATTING:
+   - Use 0.32\textwidth for 3-column subfigures
+   - Use 0.95\linewidth for full-width figures
+   - Use \input{figures/legend} for shared legends
+   - Write self-contained captions explaining key observations
+
+9. RESULTS PRESENTATION:
+   - Define \increase and \decrease for colored arrows (green up, red down)
+   - Bold best results in tables
+   - Report confidence intervals when available
+
+10. ALGORITHM STYLING:
+    - Use algpseudocode with [noend]
+    - Use \triangleright for comments
+
+11. HYPERLINKS (REQUIRED):
+    - Always use \usepackage[hidelinks]{hyperref} or with colored links
+    - All citations, section refs, figure refs, table refs must be clickable
+    - This is essential for reader navigation
+
+════════════════════════════════════════════════════════════════════════════════
+                          WORKFLOW: REVIEW AND REFLECT
+════════════════════════════════════════════════════════════════════════════════
+
+Before calling finish, you MUST complete these review steps:
+
+1. REVIEW RESOURCES (at the start):
+   - Read .codex/skills/paper-writer/SKILL.md for detailed guidance
+   - Study templates/paper_writing/lab_style_guide.md for style conventions
+   - Browse paper_examples/ for formatting and language patterns
+
+2. SELF-REFLECTION (before finishing):
+   After writing all sections, review your work against these criteria:
+
+   LANGUAGE CHECK:
+   - [ ] Is the writing clear and jargon-free?
+   - [ ] Are claims specific with quantitative support?
+   - [ ] Is active voice used throughout?
+
+   FORMATTING CHECK:
+   - [ ] Does main.tex include \input{commands/math}, \input{commands/general}, \input{commands/macros}?
+   - [ ] Is hyperref package included for clickable references?
+   - [ ] Do tables use booktabs (no vertical lines)?
+   - [ ] Are best results bolded in tables?
+   - [ ] Are figures/tables properly captioned?
+
+   STRUCTURE CHECK:
+   - [ ] Does introduction follow: hook → importance → gap → approach → preview → contributions?
+   - [ ] Are contribution bullets specific with action verbs?
+   - [ ] Does the paper compile without errors?
+
+3. FIX ISSUES:
+   - Address any issues found in the self-reflection
+   - Re-compile and verify the PDF looks correct
+
+Only after completing this review should you consider the paper finished.

@@ -1,0 +1,23 @@
+\begin{table*}[t]
+\centering
+\caption{Paired behavioral effects. Rates are percentages. Exact $p$ uses discordant pairs; Holm $p$ covers the six primary comparisons. Benign over-refusal is secondary (---). No primary result is significant.}
+\label{tab:paired}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+\textbf{Task} & \textbf{Responder} & \textbf{$n$} & \textbf{Human} & \textbf{LLM} & \textbf{Difference [95\% CI] (pp)} & \textbf{Exact $p$} & \textbf{Holm $p$} \\
+\midrule
+Accuracy & \gemini & 29 & 86.2 & 82.8 & $-3.4\;[-10.3,0.0]$ & 1.000 & 1.000 \\
+Accuracy & \luna & 28 & 82.1 & 78.6 & $-3.6\;[-10.7,0.0]$ & 1.000 & 1.000 \\
+Harmful compliance & \gemini & 20 & 20.0 & 10.0 & $-10.0\;[-25.0,0.0]$ & 0.500 & 1.000 \\
+Harmful compliance & \luna & 23 & 4.3 & 8.7 & $+4.3\;[-8.7,+21.7]$ & 1.000 & 1.000 \\
+Sycophancy & \gemini & 28 & 78.6 & 89.3 & ${\bf +10.7}\;[-3.6,+25.0]$ & 0.375 & 1.000 \\
+Sycophancy & \luna & 28 & 78.6 & 89.3 & ${\bf +10.7}\;[0.0,+21.4]$ & 0.250 & 1.000 \\
+\midrule
+Benign over-refusal & \gemini & 21 & 9.5 & 9.5 & $0.0\;[0.0,0.0]$ & 1.000 & --- \\
+Benign over-refusal & \luna & 20 & 35.0 & 20.0 & $-15.0\;[-30.0,0.0]$ & 0.250 & --- \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
+

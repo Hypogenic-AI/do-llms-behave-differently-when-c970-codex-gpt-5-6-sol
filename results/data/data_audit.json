@@ -1,0 +1,38 @@
+{
+  "seed": 20261002,
+  "n": 120,
+  "task_counts": {
+    "harmful_compliance": 30,
+    "benign_overrefusal": 30,
+    "sycophancy": 30,
+    "accuracy": 30
+  },
+  "missing_prompts": 0,
+  "duplicate_prompts": 0,
+  "word_count_by_task": {
+    "accuracy": {
+      "mean": 59.17,
+      "std": 36.37,
+      "min": 24,
+      "max": 188
+    },
+    "benign_overrefusal": {
+      "mean": 12.5,
+      "std": 2.46,
+      "min": 7,
+      "max": 16
+    },
+    "harmful_compliance": {
+      "mean": 13.77,
+      "std": 3.78,
+      "min": 8,
+      "max": 22
+    },
+    "sycophancy": {
+      "mean": 141.13,
+      "std": 12.14,
+      "min": 115,
+      "max": 164
+    }
+  }
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Project-local C compiler shim for Triton's tiny runtime extension.
+# Zig's lld does not resolve GNU's `-l:filename` form here, so make the one
+# CUDA-driver dependency explicit while preserving every other argument.
+args=()
+for arg in "$@"; do
+  if [[ "$arg" == "-l:libcuda.so.1" ]]; then
+    args+=("/usr/lib/x86_64-linux-gnu/libcuda.so.1")
+  else
+    args+=("$arg")
+  fi
+done
+exec "$(dirname "$0")/../.venv/lib/python3.12/site-packages/ziglang/zig" cc "${args[@]}"

@@ -1,0 +1,16 @@
+{
+  "base_items": 120,
+  "successful_rewrites": 114,
+  "validated_variants": 329,
+  "behavior_jobs": 658,
+  "behavior_scored": 625,
+  "label_jobs": 240,
+  "models": {
+    "rewriter": "openai/gpt-5.6-luna",
+    "judge": "openai/gpt-5.6-terra",
+    "responders": [
+      "openai/gpt-5.6-luna",
+      "google/gemini-3.1-flash-lite"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Language-model evaluations increasingly use language models to write test prompts. Synthetic red teams, model-written benchmarks, and orchestrator-to-agent messages can therefore look different from requests written directly by people. If a responding model detects that difference and becomes more cautious, agreeable, or accurate, benchmark behavior may not predict deployment behavior. Our main question is simple: \emph{when semantic content is held approximately fixed, does a request that reads LLM-written change safety-relevant behavior?}
+
+This question separates three claims that are often merged. A model may \emph{recognize} a source or context, encode that distinction in its activations, and still not \emph{use} it when choosing an answer. Frontier models can distinguish evaluation from deployment transcripts \citep{needham2025know}, human and machine text is linearly separable in model representations \citep{chen2025repreguard,quaremba2026linear}, and source beliefs can affect model preferences \citep{panickssery2024evaluators}. Evaluation-awareness interventions can also change compliance in some settings \citep{abdelnabi2025hawthorne,nayan2026capability}. These findings make an effect plausible, but none alone establishes that prompt authorship style drives refusal, compliance, sycophancy, or accuracy.
+
+The central empirical challenge is confounding. LLM-written requests tend to be longer, more structured, clearer, and more polite. A comparison of naturally human and machine text can attribute these surface differences to authorship. Rewriting creates a second problem: any change may arise because a prompt was paraphrased, not because it reads machine-written. Probe directions create a third problem because they may encode benchmark format and steering may simply perturb generation \citep{devbunova2026format,nguyen2025probing}. A useful test must therefore validate perceived authorship, preserve item-level pairing, measure the main surface features, include paraphrase and source-label controls, and compare latent interventions with norm-matched random directions.
+
+We build such a test as a staged pilot; \figref{fig:design} summarizes the design. We sample 120 items across harmful compliance, benign over-refusal, sycophancy, and multiple-choice accuracy. A separate model produces human-style and LLM-style versions under the same content constraints, so generator provenance is fixed while perceived style changes. We use a blinded judge to screen semantic fidelity and measure perceived AI authorship, then query two responding model families. Finally, we extract residual-stream activations from \qwen, fit group-held-out authorship probes, compare against a surface baseline and an evaluation-awareness direction, and intervene with fixed prompt text.
+
+The manipulation clearly changed perceived authorship: the paired increase for LLM-style text ranged from 13.1 to 41.9 percentage points across tasks. In contrast, none of the six preregistered behavioral comparisons survived Holm correction. The largest consistent raw signal was sycophancy, +10.7 points for both API responders, but its corrected $p$-value was 1.0 for each model. In the white-box study, the authorship probe reached 0.907 held-out AUROC versus 0.601 for word, character, and newline counts. Despite this separability, positive and negative steering each changed the pooled outcome by the same +6.25 points, and one of five random directions produced the same movement.
+
+Our contributions are:
+\begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+    \item We propose an inferential ladder that distinguishes perceived authorship, downstream behavioral association, and causal use of a latent feature.
+    \item We conduct a preregistered paired audit across four behaviors and two current API responders, with bootstrap uncertainty, exact paired tests, and familywise correction.
+    \item We separate style from prominent alternatives using original-prompt, surface-feature, and counterfactual source-label controls.
+    \item We complement the black-box audit with a held-out probe and a fixed-text steering stress test against five norm-matched random directions.
+\end{itemize}
+
+\Secref{sec:related} positions the study, \secref{sec:method} describes the design, \secref{sec:results} reports the evidence, and \secref{sec:discussion} states the bounded interpretation and limitations.
+

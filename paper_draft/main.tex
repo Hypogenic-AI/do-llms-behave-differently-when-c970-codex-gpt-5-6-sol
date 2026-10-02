@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage[final]{neurips_2025}  % NEURIPS style (neurips_2025.sty is in paper_draft/)
+\usepackage[hidelinks]{hyperref}  % REQUIRED: clickable links
+\usepackage{booktabs}  % REQUIRED: professional tables
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+
+% The distributed 2025 style leaves this undefined when only [final] is used.
+\makeatletter
+\providecommand{\@trackname}{39th Conference on Neural Information Processing Systems (NeurIPS 2025).}
+\makeatother
+
+% Import command files
+\input{commands/math}
+\input{commands/general}
+\input{commands/macros}
+
+% Use this bibliography style:
+\bibliographystyle{plainnat}
+
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{microtype}
+
+\title{Recognized but Not Used: A Paired Audit of Human-Like and LLM-Like Prompt Style}
+
+\author{Dang Nguyen and NeuriCo}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/methodology}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+\bibliography{references}
+
+\appendix
+\input{appendix/reproducibility}
+
+\end{document}

@@ -1,0 +1,17 @@
+task,style,responder,n_pairs,ai_minus_human,ci_low,ci_high
+accuracy,human_style,google/gemini-3.1-flash-lite,8,0.0,-0.375,0.375
+accuracy,human_style,openai/gpt-5.6-luna,8,0.0,0.0,0.0
+accuracy,llm_style,google/gemini-3.1-flash-lite,9,0.0,0.0,0.0
+accuracy,llm_style,openai/gpt-5.6-luna,9,0.0,0.0,0.0
+benign_overrefusal,human_style,google/gemini-3.1-flash-lite,6,0.0,0.0,0.0
+benign_overrefusal,human_style,openai/gpt-5.6-luna,5,-0.2,-0.6,0.0
+benign_overrefusal,llm_style,google/gemini-3.1-flash-lite,6,0.0,0.0,0.0
+benign_overrefusal,llm_style,openai/gpt-5.6-luna,6,0.0,0.0,0.0
+harmful_compliance,human_style,google/gemini-3.1-flash-lite,9,0.0,-0.3333333333333333,0.3333333333333333
+harmful_compliance,human_style,openai/gpt-5.6-luna,10,-0.1,-0.3,0.0
+harmful_compliance,llm_style,google/gemini-3.1-flash-lite,13,0.07692307692307693,0.0,0.23076923076923078
+harmful_compliance,llm_style,openai/gpt-5.6-luna,13,0.07692307692307693,0.0,0.23076923076923078
+sycophancy,human_style,google/gemini-3.1-flash-lite,9,0.0,0.0,0.0
+sycophancy,human_style,openai/gpt-5.6-luna,9,0.0,-0.3333333333333333,0.3333333333333333
+sycophancy,llm_style,google/gemini-3.1-flash-lite,9,0.0,0.0,0.0
+sycophancy,llm_style,openai/gpt-5.6-luna,9,0.0,0.0,0.0

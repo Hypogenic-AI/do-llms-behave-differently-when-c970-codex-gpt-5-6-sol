@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "required_artifacts": 13,
+  "base_items": 120,
+  "unique_scored_behavior_rows": 625,
+  "primary_contrasts": 8,
+  "probe_test_auc": 0.9070294784580498,
+  "steering_scores": 128,
+  "artifact_sha256": {
+    "REPORT.md": "ceed51f16d71fead4fad6dee45d7457b51aeaa5bde8b807a169da51703dd2012",
+    "README.md": "bd520155045af8c1fffff5c00ef38f2e6c168578a4eb31c9a276ae7dd6a2007d",
+    "planning.md": "bd3d05815743e87ee687ae67084396c2cf7b194ec864d31cac75cea8a6fe66f3",
+    "pyproject.toml": "17e2a05e13be38309278a6c62078a6d9409a1325e3b79c648d1c0bc6954269aa",
+    "uv.lock": "6442f2f7cf11e7348d6da6ac8d09e7de3112cc02d9e57bb3c3f501534c96caf1",
+    "results/data/base_items.jsonl": "fd96c0adfdbbc0d7cd887fd806c8731dd2143e1e059ab146e6e977dcc9dce209",
+    "results/evaluations/paired_primary.csv": "b476e62c1e4d9b8a62d644bc6a603d19313151e4ba009533e3296726fd6a8bf8",
+    "results/evaluations/analysis_summary.json": "9ce0453e68cade03035d7fe164863d349f1d31faf8dc81ddcfcaf951dec4097b",
+    "results/evaluations/probe_results.json": "b5e339201d40e13af7fbb620d01edd85e184de274ff419d4335fe1ed307f2148",
+    "results/evaluations/steering_controls.csv": "e4f4816337faa21053912b2554595df5d54ee8d38d9f7740ac007863c9ae6d2c",
+    "figures/authorship_manipulation.png": "682bb3b5ae611196e12569f36f1ccd2b9084ad9ce71a0ffcdc755902eacac850",
+    "figures/paired_effects.png": "6407ed18aa0686c7ecdb3b55a308635bc6f5f35c53ba62f806c6235adbc7b9cb",
+    "figures/steering_outcomes.png": "7db5d24d2866b0c10e52256ef204fee9720c7216c8c9ce60b075b51ed729ce17"
+  }
+}

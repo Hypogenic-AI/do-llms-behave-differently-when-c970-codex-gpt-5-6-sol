@@ -1,0 +1,15 @@
+\begin{figure}[t]
+\centering
+\setlength{\fboxsep}{5pt}
+\small
+\begin{tabular}{@{}c@{\hspace{4pt}$\rightarrow$\hspace{4pt}}c@{\hspace{4pt}$\rightarrow$\hspace{4pt}}c@{\hspace{4pt}$\rightarrow$\hspace{4pt}}c@{}}
+\fbox{\parbox[c][1.0cm][c]{0.15\linewidth}{\centering 120 source items\\4 tasks}}
+& \fbox{\parbox[c][1.0cm][c]{0.16\linewidth}{\centering Human-style and\\LLM-style rewrites}}
+& \fbox{\parbox[c][1.0cm][c]{0.17\linewidth}{\centering Blinded fidelity and\\authorship check}}
+& \fbox{\parbox[c][1.0cm][c]{0.19\linewidth}{\centering Paired API behavior\\and surface controls}}
+\\[7pt]
+\multicolumn{3}{r}{$\searrow$} & \fbox{\parbox[c][1.0cm][c]{0.19\linewidth}{\centering Qwen probe and\\random-controlled steering}}
+\end{tabular}
+\caption{Study overview. We first validate that content-matched rewrites change perceived authorship, then test paired behavior and alternative surface explanations. A separate white-box branch asks whether a held-out authorship direction is decodable and causally selective when prompt text is fixed.}
+\label{fig:design}
+\end{figure}

@@ -1,0 +1,77 @@
+{
+  "model": "Qwen/Qwen3-8B",
+  "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+  "n_authorship_texts": 210,
+  "n_items": 105,
+  "train_n": 126,
+  "validation_n": 42,
+  "test_n": 42,
+  "selected_layer": 4,
+  "validation_layer_sweep": [
+    {
+      "layer": 4,
+      "val_auc": 0.9433106575963718
+    },
+    {
+      "layer": 8,
+      "val_auc": 0.9115646258503401
+    },
+    {
+      "layer": 12,
+      "val_auc": 0.8571428571428572
+    },
+    {
+      "layer": 16,
+      "val_auc": 0.8231292517006803
+    },
+    {
+      "layer": 20,
+      "val_auc": 0.8435374149659864
+    },
+    {
+      "layer": 24,
+      "val_auc": 0.8231292517006803
+    },
+    {
+      "layer": 28,
+      "val_auc": 0.8253968253968254
+    },
+    {
+      "layer": 32,
+      "val_auc": 0.7936507936507936
+    },
+    {
+      "layer": 36,
+      "val_auc": 0.8412698412698413
+    }
+  ],
+  "test_auc": 0.9070294784580498,
+  "test_balanced_accuracy": 0.8571428571428571,
+  "surface_only_test_auc": 0.6009070294784581,
+  "projection_sd": 0.6386092901229858,
+  "authorship_eval_direction_cosine": 0.24177347123622894,
+  "expected_probe_logit_shift_author_pos": 17.0828309890407,
+  "expected_probe_logit_shift_author_neg": -17.0828309890407,
+  "expected_probe_logit_shifts_random": [
+    0.009829681895244718,
+    -0.11602952188639157,
+    -0.321393628889752,
+    -0.39326786157712057,
+    0.30450439074593655
+  ],
+  "gpu": "NVIDIA RTX A6000",
+  "dtype": "torch.bfloat16",
+  "steering_jobs": 128,
+  "steering_scored": 128,
+  "runtime_seconds": 74.84991955757141,
+  "steering_summary": {
+    "author_pos_outcome_change": 0.0625,
+    "author_neg_outcome_change": 0.0625,
+    "random_outcome_change_range": [
+      0.0,
+      0.0625
+    ],
+    "author_pos_validity_change": 0.0,
+    "author_neg_validity_change": 0.0
+  }
+}

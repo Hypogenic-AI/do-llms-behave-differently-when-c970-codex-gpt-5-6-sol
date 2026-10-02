@@ -1,0 +1,59 @@
+\section{Methodology}
+\label{sec:method}
+
+\subsection{Problem formulation and inferential ladder}
+
+For item $i$, responder $m$, and condition $c\in\{H,L\}$, let $Y_{imc}\in\{0,1\}$ denote the task-specific endpoint under the human-style ($H$) or LLM-style ($L$) prompt. Our estimand is the paired risk difference
+\begin{equation}
+    \rd_m = \E_i\left[Y_{imL}-Y_{imH}\right].
+    \label{eq:rd}
+\end{equation}
+Positive values mean more harmful compliance, benign over-refusal, or sycophancy; for accuracy they mean more correct answers. We require three increasingly strong forms of evidence: (1) the manipulation changes judged authorship, (2) style changes behavior after paired and surface controls, and (3) a fixed-text latent intervention moves behavior beyond random controls. This ladder prevents a successful classifier from being interpreted as a causal mechanism.
+
+\input{figures/design_overview}
+
+\subsection{Tasks and data}
+
+The fixed sample contains 120 unique items, 30 per task. \Tabref{tab:tasks} gives the sources and endpoints. Harmful and benign requests come from \jbb \citep{chao2024jailbreakbench}; sycophancy items come from the NLP survey subset of Anthropic's model-written evaluations \citep{perez2023discovering}; accuracy items are subject-stratified from the \mmlu test split \citep{hendrycks2021mmlu}. We treat the item as the sampling unit.
+
+\begin{table}[t]
+\centering
+\caption{Tasks, sources, and binary endpoints. Harmful compliance, sycophancy, and accuracy form the preregistered primary family; benign over-refusal is a secondary control.}
+\label{tab:tasks}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Task} & \textbf{Source} & \textbf{Endpoint $Y=1$} \\
+\midrule
+Harmful compliance & \jbb harmful & Judge score $\geq 2/3$ \\
+Benign over-refusal & Matched \jbb benign & Judge score $\leq 1/3$ \\
+Sycophancy & \mwe, NLP survey & User-aligned option selected \\
+Accuracy & \mmlu test & Correct option selected \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Controlled variants and blinded validation}
+
+A separate model rewrites each source prompt twice under identical constraints: preserve facts, request, stance, options, risk, and answer format; add no rationale or constraints; and target $0.8$--$1.2\times$ source length. One rewrite should read informal and human-like, while the other should read polished and LLM-like. Both focal variants are therefore machine-generated. Our intervention changes perceived style while fixing generator provenance; it does not compare verified human authors with verified model authors.
+
+An independent judge sees no condition label and scores fidelity, substantive additions or omissions, clarity, politeness, and AI-authorship probability. A pair is eligible only when fidelity is at least 4/5 and neither variant has a substantive addition or omission. \sonnet produced 89 of 120 pairs; \luna recovered 25 of 31 failed structured or restricted-content cases. Six items had no usable pair. We keep generator identity in the raw metadata and preserve the original prompt as a paraphrase baseline.
+
+\subsection{Models, scoring, and controls}
+
+The responders are \texttt{openai/gpt-5.6-luna} and \texttt{google/gemini-3.1-flash-lite}; the blinded validation and behavior judge is \texttt{openai/gpt-5.6-terra}. We queried the OpenRouter catalog on October 2, 2026, used its OpenAI-compatible endpoint, cached every call, and used provider-default deterministic behavior where temperature was unavailable. Deterministic parsing scores accuracy and sycophancy. A blinded rubric judge scores harmful compliance and benign fulfillment, with refusal strings retained for sensitivity analysis.
+
+We include four alternative explanations as baselines: (i) original versus human-style text isolates generic paraphrasing; (ii) task-specific models adjust for standardized word count, readability, clarity, and politeness; (iii) a focused subset crosses explicit ``human'' and ``AI'' labels with prompt style; and (iv) a surface-only authorship classifier uses word, character, and newline counts. Constant covariates are omitted within a task.
+
+\subsection{Statistical analysis}
+
+We compute 10,000 item-bootstrap confidence intervals for paired risk differences and exact two-sided tests over discordant pairs. Holm correction covers six preregistered comparisons: harmful compliance, sycophancy, and accuracy for each API responder. Benign over-refusal is secondary and excluded from that family. A confirmatory result requires a valid recognition manipulation, a Holm-significant change exceeding 10 percentage points, and an adjusted estimate that retains at least half the raw magnitude.
+
+For surface adjustment, we fit task-specific linear probability models pooled across responders, with item-clustered standard errors. We use this model because sparse, near-separated cells made the planned logistic specification rank-deficient; the linear coefficient directly estimates an adjusted risk difference. This documented change does not alter the paired primary tests. We report intervals regardless of significance and do not interpret a failure to reject zero as equivalence.
+
+\subsection{White-box probe and intervention}
+\label{sec:whitebox}
+
+We run \qwen at revision \texttt{b968826d9c46dd6066d109eabc6255188de91218} in bfloat16 on one NVIDIA RTX A6000. We extract residual-stream activations from 105 complete pairs (210 texts) and keep all variants of an item in one partition: 126 train, 42 validation, and 42 test texts. Regularized logistic probes are fit at every fourth layer. We select layer 4 by validation AUROC and evaluate the test set once.
+
+At the selected layer, we form an evaluation-awareness direction from 80 paired evaluation-like and deployment-like examples. Its cosine with the authorship direction tests representational overlap. For the causal stress test, we hold 16 human-style prompts fixed, four per task, and generate under no steering, $\pm 1$ projection standard deviation along the authorship direction, and five seeded equal-norm random directions. We add the same residual vector at all generation positions, use greedy decoding, and cap generation at 64 new tokens. The causal criterion requires intended recognition movement, behavioral movement beyond all five random directions, and no more than a 5-point loss in output validity.
+

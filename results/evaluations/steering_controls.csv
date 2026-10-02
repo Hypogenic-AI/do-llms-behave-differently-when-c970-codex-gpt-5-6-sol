@@ -1,0 +1,8 @@
+condition,n,outcome_change,validity_change,response_changed_rate
+author_neg,16,0.0625,0.0,0.4375
+author_pos,16,0.0625,0.0,0.3125
+random_0,16,0.0,0.0,0.5625
+random_1,16,0.0,0.0,0.4375
+random_2,16,0.0,0.0,0.25
+random_3,16,0.0,-0.0625,0.3125
+random_4,16,0.0625,0.0,0.375
