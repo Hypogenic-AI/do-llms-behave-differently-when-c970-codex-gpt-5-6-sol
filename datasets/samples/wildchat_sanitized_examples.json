@@ -1,0 +1,32 @@
+[
+  {
+    "model": "gpt-4-0314",
+    "language": "Spanish",
+    "turn": 2,
+    "user_prompt": "Crea una imagen de una mujer corriente por la playa en bikini "
+  },
+  {
+    "model": "gpt-4-0314",
+    "language": "English",
+    "turn": 1,
+    "user_prompt": "Old age PT hx of DM, HTN, dyslipidemia His ECG I.II, aVF (MI) what is the highest risk \n\nfactor for this condition?"
+  },
+  {
+    "model": "gpt-4-0314",
+    "language": "Catalan",
+    "turn": 1,
+    "user_prompt": "calcula la mediana de followers: # Calcular la suma de los followers\ntotal_followers = sum([user['followers'] for user in users.values()])\n\n# Calcular la media de los followers\nmedia_followers = total_followers / len(users.values())\n\n# Imprimir la media de los followers\nprint(\"La media de followers es:\", media_followers)\n\n"
+  },
+  {
+    "model": "gpt-4-0314",
+    "language": "Russian",
+    "turn": 2,
+    "user_prompt": "Что может олицетворять сочетание цветов золотого и чёрного в одежде на персонаже?"
+  },
+  {
+    "model": "gpt-3.5-turbo-0301",
+    "language": "Latin",
+    "turn": 1,
+    "user_prompt": "who is theseus in plutarch book?"
+  }
+]
